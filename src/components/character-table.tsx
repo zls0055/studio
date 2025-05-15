@@ -46,7 +46,11 @@ export function CharacterTable({ characters }: CharacterTableProps) {
                       data-ai-hint={
                         character.name === "Xavier" ? "man hunter" :
                         character.name === "Zayne" ? "man doctor" :
-                        character.name === "Rafayel" ? "man artist" : "character"
+                        character.name === "Rafayel" ? "man artist" :
+                        character.name === "Xu Mo" ? "man scientist" :
+                        character.name === "Li Zeyan" ? "man ceo" :
+                        character.name === "Zhou Qiluo" ? "man celebrity" :
+                        character.name === "Xue Yang" ? "man complex" : "character"
                       }
                     />
                   </TableCell>
