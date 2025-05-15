@@ -54,7 +54,13 @@ export function CharacterTable({ characters }: CharacterTableProps) {
                         character.name === "Bai Qi" ? "man bodyguard" :
                         character.name === "Fang Quan" ? "man doctor gentle" :
                         character.name === "Yu Yan" ? "man mysterious" :
-                        character.name === "Fu Xing" ? "man researcher" : "character"
+                        character.name === "Fu Xing" ? "man researcher" :
+                        character.name === "Liu Yu" ? "man memory" :
+                        character.name === "Lin Feng" ? "man fire leader" :
+                        character.name === "Yan Jun" ? "man insight" :
+                        character.name === "Zhao Rui" ? "man sound producer" :
+                        character.name === "Cheng Hao" ? "man sound wave" :
+                        character.name === "Jin Han" ? "man metal" : "character"
                       }
                     />
                   </TableCell>
