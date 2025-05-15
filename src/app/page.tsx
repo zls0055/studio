@@ -1,7 +1,7 @@
 
 import { CharacterTable } from '@/components/character-table';
 import type { Character } from '@/types/character';
-import { Zap, Shield, FileText, Heart, Sparkles } from 'lucide-react'; // Using Heart as an alternative for Evol to align with game themes
+import { Zap, Shield, FileText, Heart } from 'lucide-react'; // Using Heart as an alternative for Evol to align with game themes
 
 const charactersData: Character[] = [
   {
@@ -38,18 +38,6 @@ const charactersData: Character[] = [
     affiliation: '艺术家 (Artist)',
     affiliationIcon: Shield, // Using shield as a generic affiliation icon
     description: '才华横溢的艺术家，海洋的宠儿。思维天马行空，时常做出令人意想不到的举动。画风浪漫炽热，色彩大胆奔放。',
-    descriptionIcon: FileText,
-  },
-  {
-    id: '4',
-    name: 'Homura',
-    chineseName: '绯',
-    imageUrl: 'https://placehold.co/300x300.png',
-    evol: '秘術 (Mystic Arts)',
-    evolIcon: Sparkles,
-    affiliation: '独行者 (Lone Wolf)',
-    affiliationIcon: Shield,
-    description: '一位背景神秘，游走于各个势力之间的独行者。他的Evol能力独特且难以捉摸，似乎与古老的秘术有关。人们对他的真实意图知之甚少。',
     descriptionIcon: FileText,
   },
 ];
