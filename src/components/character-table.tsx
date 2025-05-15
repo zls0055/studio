@@ -44,22 +44,16 @@ export function CharacterTable({ characters }: CharacterTableProps) {
                       height={80}
                       className="rounded-lg object-cover shadow-md"
                       data-ai-hint={
-                        character.name === "Xavier" ? "man hunter" :
-                        character.name === "Zayne" ? "man doctor" :
-                        character.name === "Rafayel" ? "man artist" :
-                        character.name === "Xu Mo" ? "man scientist" :
-                        character.name === "Li Zeyan" ? "man ceo" :
-                        character.name === "Zhou Qiluo" ? "man celebrity" :
                         character.name === "Xue Yang" ? "man complex" :
                         character.name === "Bai Qi" ? "man bodyguard" :
-                        character.name === "Fang Quan" ? "man doctor gentle" :
+                        character.name === "Fang Quan" ? "man doctor" :
                         character.name === "Yu Yan" ? "man mysterious" :
                         character.name === "Fu Xing" ? "man researcher" :
                         character.name === "Liu Yu" ? "man memory" :
-                        character.name === "Lin Feng" ? "man fire leader" :
+                        character.name === "Lin Feng" ? "fire leader" :
                         character.name === "Yan Jun" ? "man insight" :
-                        character.name === "Zhao Rui" ? "man sound producer" :
-                        character.name === "Cheng Hao" ? "man sound wave" :
+                        character.name === "Zhao Rui" ? "sound producer" :
+                        character.name === "Cheng Hao" ? "sound wave" :
                         character.name === "Jin Han" ? "man metal" : "character"
                       }
                     />
