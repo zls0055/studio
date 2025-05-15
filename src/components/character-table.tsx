@@ -44,6 +44,9 @@ export function CharacterTable({ characters }: CharacterTableProps) {
                       height={80}
                       className="rounded-lg object-cover shadow-md"
                       data-ai-hint={
+                        character.name === "Xu Mo" ? "scientist producer" :
+                        character.name === "Li Zeyan" ? "ceo businessman" :
+                        character.name === "Zhou Qiluo" ? "star idol" :
                         character.name === "Xue Yang" ? "man complex" :
                         character.name === "Bai Qi" ? "man bodyguard" :
                         character.name === "Fang Quan" ? "man doctor" :

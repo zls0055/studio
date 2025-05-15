@@ -1,9 +1,45 @@
 
 import { CharacterTable } from '@/components/character-table';
 import type { Character } from '@/types/character';
-import { Zap, Shield, FileText, Heart, Gem, Flame, Hospital, EyeOff, Building, Eye, Eraser, ScanEye, Volume2, Waves, Magnet, Sparkles, Briefcase } from 'lucide-react';
+import { Zap, Shield, FileText, Heart, Gem, Flame, Hospital, EyeOff, Building, Eye, Eraser, ScanEye, Volume2, Waves, Magnet, Sparkles, Briefcase, Clock, Brain, Users } from 'lucide-react';
 
 const charactersData: Character[] = [
+  {
+    id: '4',
+    name: 'Xu Mo',
+    chineseName: '许墨',
+    imageUrl: 'https://placehold.co/300x300.png',
+    evol: '时空穿越能力 (Space-time travel)',
+    evolIcon: Clock,
+    affiliation: '星锐娱乐 (Star Entertainment)',
+    affiliationIcon: Sparkles,
+    description: '许墨是一个外表冷酷、才华横溢的天才科学家兼制片人。性格理性而高傲，拥有深厚的专业知识。他在面对感情时较为迟钝，但随着剧情的发展，他逐渐被主角的温柔与坚韧所打动。许墨的超能力使他能够穿越不同的时间线，甚至改变过去的事件。',
+    descriptionIcon: FileText,
+  },
+  {
+    id: '5',
+    name: 'Li Zeyan',
+    chineseName: '李泽言',
+    imageUrl: 'https://placehold.co/300x300.png',
+    evol: '精神感应 (Mental perception)',
+    evolIcon: Brain,
+    affiliation: '寰宇集团 (Huanyu Group)',
+    affiliationIcon: Briefcase,
+    description: '李泽言是寰宇集团的CEO，冷静、聪明且非常有商业头脑。他总是能够预见未来，并善于掌控局面。李泽言的感情复杂且内敛，他的能力使他能够直接进入他人的内心，但也因此使得他对情感的处理更加谨慎。',
+    descriptionIcon: FileText,
+  },
+  {
+    id: '6',
+    name: 'Zhou Qiluo',
+    chineseName: '周棋洛',
+    imageUrl: 'https://placehold.co/300x300.png',
+    evol: '变形能力 (Shapeshifting)',
+    evolIcon: Users,
+    affiliation: '星锐娱乐 (Star Entertainment)',
+    affiliationIcon: Sparkles,
+    description: '周棋洛是一个天真、活泼的明星，以其俊美的外貌和甜美的声音受到了粉丝的追捧。他的超能力使他能够随意改变自己的外形，因此他经常用这个能力来玩笑或掩藏自己的真实身份。虽然他总是看起来无忧无虑，但其实他也有一些复杂的内心世界。',
+    descriptionIcon: FileText,
+  },
   {
     id: '7',
     name: 'Xue Yang',
