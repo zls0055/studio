@@ -1,3 +1,4 @@
+
 import type { Character } from '@/types/character';
 import Image from 'next/image';
 import {
@@ -45,7 +46,8 @@ export function CharacterTable({ characters }: CharacterTableProps) {
                       data-ai-hint={
                         character.name === "Xavier" ? "man hunter" :
                         character.name === "Zayne" ? "man doctor" :
-                        character.name === "Rafayel" ? "man artist" : "character"
+                        character.name === "Rafayel" ? "man artist" :
+                        character.name === "Homura" ? "man mysterious" : "character"
                       }
                     />
                   </TableCell>
