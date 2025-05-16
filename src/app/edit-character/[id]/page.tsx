@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react'; // Added 'use' import
 
 const characterFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -29,12 +29,12 @@ const characterFormSchema = z.object({
 type CharacterFormData = z.infer<typeof characterFormSchema>;
 
 interface EditCharacterPageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>; // Updated type to Promise
 }
 
-export default function EditCharacterPage({ params }: EditCharacterPageProps) {
+export default function EditCharacterPage({ params: paramsPromise }: EditCharacterPageProps) {
+  const resolvedParams = use(paramsPromise); // Unwrap the params promise
+
   const router = useRouter();
   const { toast } = useToast();
   const [character, setCharacter] = useState<Character | null>(null);
@@ -52,7 +52,7 @@ export default function EditCharacterPage({ params }: EditCharacterPageProps) {
   });
 
   useEffect(() => {
-    const charId = params.id;
+    const charId = resolvedParams.id; // Use resolvedParams.id
     const foundCharacter = charactersData.find(c => c.id === charId);
     if (foundCharacter) {
       setCharacter(foundCharacter);
@@ -65,7 +65,6 @@ export default function EditCharacterPage({ params }: EditCharacterPageProps) {
         imageUrl: foundCharacter.imageUrl,
       });
     } else {
-      // Handle character not found, e.g., redirect or show error
       toast({
         title: "Error",
         description: "Character not found.",
@@ -73,7 +72,7 @@ export default function EditCharacterPage({ params }: EditCharacterPageProps) {
       });
       router.push('/');
     }
-  }, [params.id, form, router, toast]);
+  }, [resolvedParams.id, form, router, toast]); // Updated dependency array
 
   function onSubmit(data: CharacterFormData) {
     // In a real app, you would send this data to an API to update the character
