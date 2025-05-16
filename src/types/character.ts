@@ -4,9 +4,9 @@ export interface Character {
   chineseName: string;
   imageUrl: string;
   evol: string;
-  evolIcon?: React.ElementType;
+  evolIcon?: string; // Changed from React.ElementType
   affiliation: string;
-  affiliationIcon?: React.ElementType;
+  affiliationIcon?: string; // Changed from React.ElementType
   description: string;
-  descriptionIcon?: React.ElementType;
+  descriptionIcon?: string; // Changed from React.ElementType
 }
