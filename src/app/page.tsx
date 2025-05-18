@@ -1,4 +1,6 @@
 
+"use client";
+
 import { CharacterTable } from '@/components/character-table';
 import { charactersData } from '@/lib/data'; // Import from the new location
 
