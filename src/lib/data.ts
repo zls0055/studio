@@ -1,7 +1,7 @@
 
 import type { Character } from '@/types/character';
 
-// Renamed to indicate it's the default/initial set of data.
+// Default/initial set of data. Can be used to seed Firestore.
 export const DEFAULT_CHARACTERS_DATA: Character[] = [
   {
     id: '1',
@@ -45,7 +45,7 @@ export const DEFAULT_CHARACTERS_DATA: Character[] = [
     chineseName: '薛洋',
     imageUrl: 'https://placehold.co/300x300.png',
     evol: '控制冰火元素 (Ice & Fire Control)',
-    evolIcon: 'Flame',
+    evolIcon: 'Flame', // Note: Was Snowflake, changed to Flame to match Evol text
     affiliation: '红石集团 (Redstone Group)',
     affiliationIcon: 'Gem',
     description: '薛洋是红石集团的继承人，外表冷酷且孤傲，性格极为复杂。他拥有操控冰火元素的能力，冷静而危险。他的一生充满了阴谋与背叛，这也让他在面对感情时格外谨慎。尽管表面上他对主角冷漠无情，但随着剧情的推进，他逐渐表现出对主角的深厚情感。',
@@ -142,7 +142,7 @@ export const DEFAULT_CHARACTERS_DATA: Character[] = [
     imageUrl: 'https://placehold.co/300x300.png',
     evol: '声音控制 (Sound Control)',
     evolIcon: 'Volume2',
-    affiliation: '星辉娱乐 (Xinghui Entertainment)',
+    affiliation: '星辉娱乐 (Xinghui Entertainment)', // Corrected from 星锐娱乐
     affiliationIcon: 'Sparkles',
     description: '赵瑞是星辉娱乐的一名资深制作人，他擅长通过声音来操控人们的情绪或引导局面。性格上他看似沉稳，但其实非常有一颗艺术家的心。他的声音控制能力使他在工作中非常得心应手，同时也让他在复杂的局势中能占得先机。',
     descriptionIcon: 'FileText',
@@ -172,5 +172,3 @@ export const DEFAULT_CHARACTERS_DATA: Character[] = [
     descriptionIcon: 'FileText',
   },
 ];
-
-export const LOCAL_STORAGE_KEY = 'loveAndDeepspaceCharacters';

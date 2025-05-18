@@ -2,7 +2,8 @@
 "use client";
 
 import type { Character } from '@/types/character';
-import { DEFAULT_CHARACTERS_DATA, LOCAL_STORAGE_KEY } from '@/lib/data';
+// DEFAULT_CHARACTERS_DATA can be removed if not used as a fallback for individual fetch
+// import { DEFAULT_CHARACTERS_DATA } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -24,6 +27,10 @@ const characterFormSchema = z.object({
   affiliation: z.string().min(1, "Affiliation is required"),
   description: z.string().min(1, "Description is required"),
   imageUrl: z.string().url("Must be a valid URL or leave empty").or(z.literal('')).optional(),
+  // Icons are not part of the form for now, they are managed in data definition
+  evolIcon: z.string().optional(),
+  affiliationIcon: z.string().optional(),
+  descriptionIcon: z.string().optional(),
 });
 
 type CharacterFormData = z.infer<typeof characterFormSchema>;
@@ -33,7 +40,7 @@ interface EditCharacterPageProps {
 }
 
 export default function EditCharacterPage({ params: paramsPromise }: EditCharacterPageProps) {
-  const resolvedParams = use(paramsPromise); // Unpack the promise
+  const resolvedParams = use(paramsPromise); 
 
   const router = useRouter();
   const { toast } = useToast();
@@ -53,110 +60,101 @@ export default function EditCharacterPage({ params: paramsPromise }: EditCharact
   });
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && resolvedParams?.id) {
+    if (resolvedParams?.id) {
       const charId = resolvedParams.id;
-      let allCharacters: Character[] = DEFAULT_CHARACTERS_DATA;
-      const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      
-      if (storedData) {
+      setIsLoading(true);
+      const fetchCharacter = async () => {
         try {
-          allCharacters = JSON.parse(storedData);
-        } catch (error) {
-          console.error("Failed to parse characters from local storage for editing", error);
-          // Fallback to default data if parsing fails
-          allCharacters = DEFAULT_CHARACTERS_DATA;
-        }
-      }
+          const characterDocRef = doc(db, "characters", charId);
+          const docSnap = await getDoc(characterDocRef);
 
-      const foundCharacter = allCharacters.find(c => c.id === charId);
-      
-      if (foundCharacter) {
-        setCharacter(foundCharacter);
-        form.reset({
-          name: foundCharacter.name,
-          chineseName: foundCharacter.chineseName,
-          evol: foundCharacter.evol,
-          affiliation: foundCharacter.affiliation,
-          description: foundCharacter.description,
-          imageUrl: foundCharacter.imageUrl || '',
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Character not found.",
-          variant: "destructive",
-        });
-        router.push('/');
-      }
-      setIsLoading(false);
+          if (docSnap.exists()) {
+            const fetchedCharacter = { id: docSnap.id, ...docSnap.data() } as Character;
+            setCharacter(fetchedCharacter);
+            form.reset({
+              name: fetchedCharacter.name,
+              chineseName: fetchedCharacter.chineseName,
+              evol: fetchedCharacter.evol,
+              affiliation: fetchedCharacter.affiliation,
+              description: fetchedCharacter.description,
+              imageUrl: fetchedCharacter.imageUrl || '',
+              // Pass icon data to form if needed, or keep them separate
+              evolIcon: fetchedCharacter.evolIcon,
+              affiliationIcon: fetchedCharacter.affiliationIcon,
+              descriptionIcon: fetchedCharacter.descriptionIcon,
+            });
+          } else {
+            toast({
+              title: "Error",
+              description: "Character not found in database.",
+              variant: "destructive",
+            });
+            router.push('/');
+          }
+        } catch (error) {
+          console.error("Error fetching character from Firestore: ", error);
+          toast({
+            title: "Error",
+            description: "Could not load character data from database.",
+            variant: "destructive",
+          });
+          router.push('/');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchCharacter();
     }
   }, [resolvedParams?.id, form, router, toast]);
 
-  function onSubmit(data: CharacterFormData) {
-    if (typeof window !== 'undefined' && resolvedParams?.id) {
-      const charId = resolvedParams.id;
-      let currentCharacters: Character[] = [];
-      const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+  async function onSubmit(data: CharacterFormData) {
+    if (!character || !resolvedParams?.id) {
+      toast({
+        title: "Error",
+        description: "Character data is not loaded.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      if (storedData) {
-        try {
-          currentCharacters = JSON.parse(storedData);
-        } catch (error) {
-          console.error("Failed to parse characters from local storage on submit", error);
-          toast({
-            title: "Error",
-            description: "Could not load character data to save.",
-            variant: "destructive",
-          });
-          return;
-        }
-      } else {
-        // If local storage is empty, this means something went wrong or it's the first interaction
-        // We could initialize with default, but it's safer to indicate an error if LS is expected.
-        // For this case, let's assume if LS is empty, we use default data as the base.
-        currentCharacters = [...DEFAULT_CHARACTERS_DATA];
-      }
-      
-      const characterIndex = currentCharacters.findIndex(c => c.id === charId);
-
-      if (characterIndex !== -1) {
-        // Preserve existing icon fields as they are not part of the form
-        const originalCharacter = currentCharacters[characterIndex];
-        currentCharacters[characterIndex] = {
-          ...originalCharacter, // Keeps id, evolIcon, affiliationIcon, descriptionIcon
-          ...data,             // Overwrites name, chineseName, evol, affiliation, description, imageUrl
-          imageUrl: data.imageUrl || originalCharacter.imageUrl, // Ensure imageUrl is handled
-        };
-        
-        try {
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentCharacters));
-          toast({
-            title: "Success!",
-            description: `${data.name}'s profile has been updated.`,
-          });
-          router.push('/'); // Navigate back to the character list
-        } catch (error) {
-          console.error("Failed to save characters to local storage", error);
-          toast({
-            title: "Error",
-            description: "Could not save changes.",
-            variant: "destructive",
-          });
-        }
-      } else {
-        toast({
-          title: "Error",
-          description: "Could not find character to update.",
-          variant: "destructive",
-        });
-      }
+    const charId = resolvedParams.id;
+    // We need to merge form data with existing icon data if icons are not in the form
+    // The current Character type includes icon fields, so we should preserve them
+    const updatedCharacterData: Character = {
+      id: charId, // Ensure ID is included
+      name: data.name,
+      chineseName: data.chineseName,
+      evol: data.evol,
+      affiliation: data.affiliation,
+      description: data.description,
+      imageUrl: data.imageUrl || character.imageUrl, // Use existing if form field is empty
+      evolIcon: character.evolIcon, // Preserve original icon from loaded character
+      affiliationIcon: character.affiliationIcon, // Preserve original icon
+      descriptionIcon: character.descriptionIcon, // Preserve original icon
+    };
+    
+    try {
+      const characterDocRef = doc(db, "characters", charId);
+      await setDoc(characterDocRef, updatedCharacterData, { merge: true }); // Use setDoc with merge to update or create
+      toast({
+        title: "Success!",
+        description: `${data.name}'s profile has been updated in Firestore.`,
+      });
+      router.push('/'); 
+    } catch (error) {
+      console.error("Failed to save character to Firestore: ", error);
+      toast({
+        title: "Error",
+        description: "Could not save changes to database.",
+        variant: "destructive",
+      });
     }
   }
 
   if (isLoading || !character) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p>Loading character data...</p>
+        <p>Loading character data from Firestore...</p>
       </div>
     );
   }
