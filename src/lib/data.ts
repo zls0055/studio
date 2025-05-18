@@ -1,7 +1,8 @@
 
 import type { Character } from '@/types/character';
 
-export const charactersData: Character[] = [
+// Renamed to indicate it's the default/initial set of data.
+export const DEFAULT_CHARACTERS_DATA: Character[] = [
   {
     id: '1',
     name: 'Xu Mo',
@@ -44,7 +45,7 @@ export const charactersData: Character[] = [
     chineseName: '薛洋',
     imageUrl: 'https://placehold.co/300x300.png',
     evol: '控制冰火元素 (Ice & Fire Control)',
-    evolIcon: 'Flame', 
+    evolIcon: 'Flame',
     affiliation: '红石集团 (Redstone Group)',
     affiliationIcon: 'Gem',
     description: '薛洋是红石集团的继承人，外表冷酷且孤傲，性格极为复杂。他拥有操控冰火元素的能力，冷静而危险。他的一生充满了阴谋与背叛，这也让他在面对感情时格外谨慎。尽管表面上他对主角冷漠无情，但随着剧情的推进，他逐渐表现出对主角的深厚情感。',
@@ -171,3 +172,5 @@ export const charactersData: Character[] = [
     descriptionIcon: 'FileText',
   },
 ];
+
+export const LOCAL_STORAGE_KEY = 'loveAndDeepspaceCharacters';

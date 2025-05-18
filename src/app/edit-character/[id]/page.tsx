@@ -2,7 +2,7 @@
 "use client";
 
 import type { Character } from '@/types/character';
-import { charactersData } from '@/lib/data';
+import { DEFAULT_CHARACTERS_DATA, LOCAL_STORAGE_KEY } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,11 +33,12 @@ interface EditCharacterPageProps {
 }
 
 export default function EditCharacterPage({ params: paramsPromise }: EditCharacterPageProps) {
-  const resolvedParams = use(paramsPromise);
+  const resolvedParams = use(paramsPromise); // Unpack the promise
 
   const router = useRouter();
   const { toast } = useToast();
   const [character, setCharacter] = useState<Character | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<CharacterFormData>({
     resolver: zodResolver(characterFormSchema),
@@ -52,54 +53,107 @@ export default function EditCharacterPage({ params: paramsPromise }: EditCharact
   });
 
   useEffect(() => {
-    const charId = resolvedParams.id;
-    const foundCharacter = charactersData.find(c => c.id === charId);
-    if (foundCharacter) {
-      setCharacter(foundCharacter);
-      form.reset({
-        name: foundCharacter.name,
-        chineseName: foundCharacter.chineseName,
-        evol: foundCharacter.evol,
-        affiliation: foundCharacter.affiliation,
-        description: foundCharacter.description,
-        imageUrl: foundCharacter.imageUrl,
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "Character not found.",
-        variant: "destructive",
-      });
-      router.push('/');
+    if (typeof window !== 'undefined' && resolvedParams?.id) {
+      const charId = resolvedParams.id;
+      let allCharacters: Character[] = DEFAULT_CHARACTERS_DATA;
+      const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      
+      if (storedData) {
+        try {
+          allCharacters = JSON.parse(storedData);
+        } catch (error) {
+          console.error("Failed to parse characters from local storage for editing", error);
+          // Fallback to default data if parsing fails
+          allCharacters = DEFAULT_CHARACTERS_DATA;
+        }
+      }
+
+      const foundCharacter = allCharacters.find(c => c.id === charId);
+      
+      if (foundCharacter) {
+        setCharacter(foundCharacter);
+        form.reset({
+          name: foundCharacter.name,
+          chineseName: foundCharacter.chineseName,
+          evol: foundCharacter.evol,
+          affiliation: foundCharacter.affiliation,
+          description: foundCharacter.description,
+          imageUrl: foundCharacter.imageUrl || '',
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Character not found.",
+          variant: "destructive",
+        });
+        router.push('/');
+      }
+      setIsLoading(false);
     }
-  }, [resolvedParams.id, form, router, toast]);
+  }, [resolvedParams?.id, form, router, toast]);
 
   function onSubmit(data: CharacterFormData) {
-    const charId = resolvedParams.id;
-    const characterIndex = charactersData.findIndex(c => c.id === charId);
+    if (typeof window !== 'undefined' && resolvedParams?.id) {
+      const charId = resolvedParams.id;
+      let currentCharacters: Character[] = [];
+      const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
 
-    if (characterIndex !== -1) {
-      // Preserve existing icon fields as they are not part of the form
-      const originalCharacter = charactersData[characterIndex];
-      charactersData[characterIndex] = {
-        ...originalCharacter, // Keeps id, evolIcon, affiliationIcon, descriptionIcon
-        ...data,             // Overwrites name, chineseName, evol, affiliation, description, imageUrl
-      };
-      toast({
-        title: "Success!",
-        description: `${data.name}'s profile has been updated.`,
-      });
-      router.push('/'); // Navigate back to the character list
-    } else {
-      toast({
-        title: "Error",
-        description: "Could not find character to update.",
-        variant: "destructive",
-      });
+      if (storedData) {
+        try {
+          currentCharacters = JSON.parse(storedData);
+        } catch (error) {
+          console.error("Failed to parse characters from local storage on submit", error);
+          toast({
+            title: "Error",
+            description: "Could not load character data to save.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } else {
+        // If local storage is empty, this means something went wrong or it's the first interaction
+        // We could initialize with default, but it's safer to indicate an error if LS is expected.
+        // For this case, let's assume if LS is empty, we use default data as the base.
+        currentCharacters = [...DEFAULT_CHARACTERS_DATA];
+      }
+      
+      const characterIndex = currentCharacters.findIndex(c => c.id === charId);
+
+      if (characterIndex !== -1) {
+        // Preserve existing icon fields as they are not part of the form
+        const originalCharacter = currentCharacters[characterIndex];
+        currentCharacters[characterIndex] = {
+          ...originalCharacter, // Keeps id, evolIcon, affiliationIcon, descriptionIcon
+          ...data,             // Overwrites name, chineseName, evol, affiliation, description, imageUrl
+          imageUrl: data.imageUrl || originalCharacter.imageUrl, // Ensure imageUrl is handled
+        };
+        
+        try {
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentCharacters));
+          toast({
+            title: "Success!",
+            description: `${data.name}'s profile has been updated.`,
+          });
+          router.push('/'); // Navigate back to the character list
+        } catch (error) {
+          console.error("Failed to save characters to local storage", error);
+          toast({
+            title: "Error",
+            description: "Could not save changes.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: "Could not find character to update.",
+          variant: "destructive",
+        });
+      }
     }
   }
 
-  if (!character) {
+  if (isLoading || !character) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Loading character data...</p>
@@ -156,7 +210,7 @@ export default function EditCharacterPage({ params: paramsPromise }: EditCharact
                     <FormItem>
                       <FormLabel>Image URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://placehold.co/300x300.png" {...field} />
+                        <Input placeholder="https://placehold.co/300x300.png" {...field} value={field.value || ''} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
