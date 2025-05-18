@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from 'next/navigation';
-import { use, useEffect, useState } from 'react'; // Added 'use' import
+import { use, useEffect, useState } from 'react';
 
 const characterFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -29,11 +29,11 @@ const characterFormSchema = z.object({
 type CharacterFormData = z.infer<typeof characterFormSchema>;
 
 interface EditCharacterPageProps {
-  params: Promise<{ id: string }>; // Updated type to Promise
+  params: Promise<{ id: string }>;
 }
 
 export default function EditCharacterPage({ params: paramsPromise }: EditCharacterPageProps) {
-  const resolvedParams = use(paramsPromise); // Unwrap the params promise
+  const resolvedParams = use(paramsPromise);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -52,7 +52,7 @@ export default function EditCharacterPage({ params: paramsPromise }: EditCharact
   });
 
   useEffect(() => {
-    const charId = resolvedParams.id; // Use resolvedParams.id
+    const charId = resolvedParams.id;
     const foundCharacter = charactersData.find(c => c.id === charId);
     if (foundCharacter) {
       setCharacter(foundCharacter);
@@ -72,17 +72,31 @@ export default function EditCharacterPage({ params: paramsPromise }: EditCharact
       });
       router.push('/');
     }
-  }, [resolvedParams.id, form, router, toast]); // Updated dependency array
+  }, [resolvedParams.id, form, router, toast]);
 
   function onSubmit(data: CharacterFormData) {
-    // In a real app, you would send this data to an API to update the character
-    console.log("Character data submitted:", data);
-    toast({
-      title: "Success!",
-      description: `${data.name}'s profile has been updated (simulated).`,
-    });
-    // Optionally, update the local charactersData (not done here for simplicity)
-    // And then navigate back or show further success messages
+    const charId = resolvedParams.id;
+    const characterIndex = charactersData.findIndex(c => c.id === charId);
+
+    if (characterIndex !== -1) {
+      // Preserve existing icon fields as they are not part of the form
+      const originalCharacter = charactersData[characterIndex];
+      charactersData[characterIndex] = {
+        ...originalCharacter, // Keeps id, evolIcon, affiliationIcon, descriptionIcon
+        ...data,             // Overwrites name, chineseName, evol, affiliation, description, imageUrl
+      };
+      toast({
+        title: "Success!",
+        description: `${data.name}'s profile has been updated.`,
+      });
+      router.push('/'); // Navigate back to the character list
+    } else {
+      toast({
+        title: "Error",
+        description: "Could not find character to update.",
+        variant: "destructive",
+      });
+    }
   }
 
   if (!character) {
