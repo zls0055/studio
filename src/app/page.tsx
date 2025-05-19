@@ -16,45 +16,74 @@ export default function Home() {
   const { toast } = useToast();
 
   useEffect(() => {
+    let isMounted = true; // Flag to prevent state updates if component unmounts
+
+    // Client-side timeout for the entire fetch operation
+    const operationTimeoutId = setTimeout(() => {
+      if (isMounted && isLoading) { // Only act if still loading
+        console.warn("Home.useEffect: Firestore operation timed out client-side after 15 seconds.");
+        toast({
+          title: "Loading Timeout",
+          description: "Could not connect to the database in a reasonable time. Displaying default data.",
+          variant: "destructive",
+        });
+        setCharacters(DEFAULT_CHARACTERS_DATA);
+        setIsLoading(false);
+      }
+    }, 15000); // 15 seconds
+
     const fetchCharacters = async () => {
+      if (!isMounted) return;
       console.log("fetchCharacters: Starting to fetch characters...");
-      setIsLoading(true);
+      // isLoading is true by default
+
       try {
         const charactersCollectionRef = collection(db, "characters");
         console.log("fetchCharacters: Attempting to get documents from Firestore...");
         const querySnapshot = await getDocs(charactersCollectionRef);
+        
+        if (!isMounted) return; // Check again before state updates
+        clearTimeout(operationTimeoutId); // Clear the main operation timeout
         console.log("fetchCharacters: Successfully fetched documents from Firestore.");
         
         if (querySnapshot.empty) {
           console.log("fetchCharacters: Firestore 'characters' collection is empty. Seeding with default data...");
-          toast({
-            title: "Initializing Database",
-            description: "No characters found in database. Seeding with default data...",
-          });
+          if (isMounted) {
+            toast({
+              title: "Initializing Database",
+              description: "No characters found. Seeding with default data...",
+            });
+          }
           const batch = writeBatch(db);
           DEFAULT_CHARACTERS_DATA.forEach((character) => {
             const docRef = doc(db, "characters", character.id);
             batch.set(docRef, character);
           });
           await batch.commit();
-          setCharacters(DEFAULT_CHARACTERS_DATA);
-          console.log("fetchCharacters: Default data seeded to Firestore.");
-          toast({
-            title: "Database Initialized",
-            description: "Default characters have been added to Firestore.",
-          });
+          if (isMounted) {
+            setCharacters(DEFAULT_CHARACTERS_DATA);
+            console.log("fetchCharacters: Default data seeded to Firestore.");
+            toast({
+              title: "Database Initialized",
+              description: "Default characters have been added.",
+            });
+          }
         } else {
           console.log("fetchCharacters: Processing fetched characters from Firestore.");
           const fetchedCharacters: Character[] = [];
           querySnapshot.forEach((doc) => {
             fetchedCharacters.push({ id: doc.id, ...doc.data() } as Character);
           });
-          // Sort by ID to maintain a consistent order, assuming IDs are somewhat sequential
           fetchedCharacters.sort((a, b) => parseInt(a.id) - parseInt(b.id));
-          setCharacters(fetchedCharacters);
+          if (isMounted) {
+            setCharacters(fetchedCharacters);
+          }
           console.log("fetchCharacters: Characters state updated with fetched data.");
         }
       } catch (error) {
+        if (!isMounted) return; // Check again
+        clearTimeout(operationTimeoutId); // Clear the main operation timeout
+
         console.error("fetchCharacters: Error during Firestore operation: ", error);
         let errorMessage = "Could not fetch characters from database. Displaying default data.";
         if (error instanceof FirestoreError) {
@@ -62,21 +91,30 @@ export default function Home() {
         } else if (error instanceof Error) {
           errorMessage = `Error: ${error.message}. Displaying default data.`;
         }
-        toast({
-          title: "Error Loading Data",
-          description: errorMessage,
-          variant: "destructive",
-        });
-        // Fallback to default data on error
-        setCharacters(DEFAULT_CHARACTERS_DATA);
+        
+        if (isMounted) {
+          toast({
+            title: "Error Loading Data",
+            description: errorMessage,
+            variant: "destructive",
+          });
+          setCharacters(DEFAULT_CHARACTERS_DATA); // Fallback to default data
+        }
         console.log("fetchCharacters: Fallback to default data due to error.");
       } finally {
-        setIsLoading(false);
-        console.log("fetchCharacters: Finished fetching characters. isLoading set to false.");
+        if (isMounted) {
+          setIsLoading(false);
+          console.log("fetchCharacters: Finished fetching characters. isLoading set to false.");
+        }
       }
     };
 
     fetchCharacters();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(operationTimeoutId); // Cleanup the timeout when component unmounts
+    };
   }, [toast]); // toast is stable, so this typically runs once on mount
 
   if (isLoading) {
