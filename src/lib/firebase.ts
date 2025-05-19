@@ -12,6 +12,21 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
+// Simple check for placeholder values
+if (
+  firebaseConfig.apiKey === "YOUR_API_KEY" ||
+  firebaseConfig.projectId === "YOUR_PROJECT_ID" ||
+  firebaseConfig.authDomain === "YOUR_AUTH_DOMAIN"
+) {
+  console.warn(
+    "Firebase configuration in src/lib/firebase.ts appears to be using " +
+    "placeholder values (e.g., YOUR_API_KEY, YOUR_PROJECT_ID). " +
+    "Please replace them with your actual Firebase project credentials " +
+    "from the Firebase console for the app to work correctly. " +
+    "If you have already updated them, ensure they are correct and saved."
+  );
+}
+
 // Initialize Firebase
 let app: FirebaseApp;
 if (!getApps().length) {
