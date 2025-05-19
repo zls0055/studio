@@ -6,7 +6,7 @@ import { DEFAULT_CHARACTERS_DATA } from '@/lib/data';
 import type { Character } from '@/types/character';
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, doc, writeBatch, FirestoreError } from 'firebase/firestore';
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -17,13 +17,16 @@ export default function Home() {
 
   useEffect(() => {
     const fetchCharacters = async () => {
+      console.log("fetchCharacters: Starting to fetch characters...");
       setIsLoading(true);
       try {
         const charactersCollectionRef = collection(db, "characters");
+        console.log("fetchCharacters: Attempting to get documents from Firestore...");
         const querySnapshot = await getDocs(charactersCollectionRef);
+        console.log("fetchCharacters: Successfully fetched documents from Firestore.");
         
         if (querySnapshot.empty) {
-          // Firestore is empty, seed with default data
+          console.log("fetchCharacters: Firestore 'characters' collection is empty. Seeding with default data...");
           toast({
             title: "Initializing Database",
             description: "No characters found in database. Seeding with default data...",
@@ -35,11 +38,13 @@ export default function Home() {
           });
           await batch.commit();
           setCharacters(DEFAULT_CHARACTERS_DATA);
+          console.log("fetchCharacters: Default data seeded to Firestore.");
           toast({
             title: "Database Initialized",
             description: "Default characters have been added to Firestore.",
           });
         } else {
+          console.log("fetchCharacters: Processing fetched characters from Firestore.");
           const fetchedCharacters: Character[] = [];
           querySnapshot.forEach((doc) => {
             fetchedCharacters.push({ id: doc.id, ...doc.data() } as Character);
@@ -47,23 +52,32 @@ export default function Home() {
           // Sort by ID to maintain a consistent order, assuming IDs are somewhat sequential
           fetchedCharacters.sort((a, b) => parseInt(a.id) - parseInt(b.id));
           setCharacters(fetchedCharacters);
+          console.log("fetchCharacters: Characters state updated with fetched data.");
         }
       } catch (error) {
-        console.error("Error fetching characters from Firestore: ", error);
+        console.error("fetchCharacters: Error during Firestore operation: ", error);
+        let errorMessage = "Could not fetch characters from database. Displaying default data.";
+        if (error instanceof FirestoreError) {
+          errorMessage = `Firestore error (${error.code}): ${error.message}. Displaying default data.`;
+        } else if (error instanceof Error) {
+          errorMessage = `Error: ${error.message}. Displaying default data.`;
+        }
         toast({
-          title: "Error",
-          description: "Could not fetch characters from database. Displaying default data.",
+          title: "Error Loading Data",
+          description: errorMessage,
           variant: "destructive",
         });
         // Fallback to default data on error
         setCharacters(DEFAULT_CHARACTERS_DATA);
+        console.log("fetchCharacters: Fallback to default data due to error.");
       } finally {
         setIsLoading(false);
+        console.log("fetchCharacters: Finished fetching characters. isLoading set to false.");
       }
     };
 
     fetchCharacters();
-  }, [toast]);
+  }, [toast]); // toast is stable, so this typically runs once on mount
 
   if (isLoading) {
     return (
